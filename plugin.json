@@ -1,0 +1,17 @@
+{
+  "name": "dual-brain-prompt",
+  "version": "1.0.0",
+  "description": "Mac mini M4 本地 Qwen2.5-14B 提示词优化与架构引擎，与 Antigravity 协同打造零成本、防幻觉、私密双脑研发工作流。",
+  "author": {
+    "name": "EcrosoftXiao"
+  },
+  "license": "MIT",
+  "keywords": [
+    "prompt-engineering",
+    "ollama",
+    "mac-m4",
+    "qwen",
+    "dual-brain",
+    "privacy-first"
+  ]
+}
