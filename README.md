@@ -87,7 +87,23 @@ dual-brain-prompt/
 
 ---
 
-## 🚀 使用指南
+## 🚀 安装与部署
+
+### 本地大模型一键拉取与编译部署
+在新机器或未安装模型的环境下，执行模型部署脚本：
+```bash
+./deploy_model.sh
+```
+该脚本会自动：
+1. 检测操作系统与芯片架构（Apple Silicon M4 自动开启 Metal GPU 统一内存硬件加速）。
+2. 检测 Ollama 安装与运行状态（未安装尝试自动通过 Homebrew 安装，未运行自动唤起后台守护）。
+3. 自动从官方模型库拉取开源基座模型 `qwen2.5:14b`（约 9.9 GB）。
+4. 读取项目中的 `Modelfile`，注入专属系统提示词并扩充至 **16,384 tokens** 上下文，编译生成定制的 `prompt-architect:latest`。
+5. 自动运行本地端到端推理自检，确认模型输出符合三段式规范。
+
+---
+
+## 💡 使用指南
 
 ### 1. 在 Antigravity 中原生使用（推荐）
 插件安装至 `~/.gemini/config/plugins/dual-brain-prompt/` 后，在任何工作区中对话，直接自然语言呼叫：
