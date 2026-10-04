@@ -101,23 +101,38 @@ dual-brain-prompt/
 4. 读取项目中的 `Modelfile`，注入专属系统提示词并扩充至 **16,384 tokens** 上下文，编译生成定制的 `prompt-architect:latest`。
 5. 自动运行本地端到端推理自检，确认模型输出符合三段式规范。
 
+### 一键部署插件到 Antigravity（推荐）
+在工程根目录下执行插件安装脚本：
+```bash
+./install.sh
+```
+该脚本会自动：
+1. 校验 Python 3 运行时环境。
+2. 连通性测试后端服务（默认通过 Cloudflare Tunnel 域名 `https://ai.evasi0nxiao.com` 代理至本地 M4 引擎）。
+3. 赋予 MCP 与 CLI 脚本必要的可执行权限。
+4. 建立软链接部署至全局插件目录 `~/.gemini/config/plugins/dual-brain-prompt`。
+5. 自动向 Stdio 发送 JSON-RPC 进行 MCP 工具注册握手验证。
+
 ---
 
 ## 💡 使用指南
 
 ### 1. 在 Antigravity 中原生使用（推荐）
-插件安装至 `~/.gemini/config/plugins/dual-brain-prompt/` 后，在任何工作区中对话，直接自然语言呼叫：
+插件部署后，Antigravity 会自动加载 `dual-brain-prompt` 插件。在任何工程会话中对话，直接自然语言呼叫：
 > **“用本地模型帮我优化这个提示词：写一个带指数退避重试与熔断的 HTTP 客户端”**
 
-Antigravity 会自动触发原生的 `optimize_prompt` MCP 工具，并在 Mac M4 上本地运算返回生产级 Prompt。
+Antigravity 会自动触发原生的 `optimize_prompt` MCP 工具，并在 Mac M4 上本地运算返回生产级结构化 Prompt。
 
 ### 2. 在 DeepSeek Harness (`dsh`) 中接入
+支持直接通过私有域名 `https://ai.evasi0nxiao.com/v1` 或本地 `http://127.0.0.1:11434/v1` 访问。
+后端已在 Cloudflare 边缘端配置 WAF API Key 鉴权（默认 Key 为 `Xiaoyao0903`）。
+
 在 `~/.dsh/settings.yaml` 的 `llm-pi-ai.providers` 下配置：
 ```yaml
 ollama:
-  displayName: "Ollama (本地 M4)"
+  displayName: "Prompt Architect (M4 本地引擎)"
   api: "openai-completions"
-  baseURL: "http://127.0.0.1:11434/v1"
+  baseURL: "https://ai.evasi0nxiao.com/v1"
   models:
     - id: "prompt-architect"
       name: "Prompt Architect (14B 提示词优化)"
@@ -129,10 +144,11 @@ ollama:
       maxTokens: 4096
   apiKeyEnv: OLLAMA_API_KEY
 ```
+> **提示**：无需在 Shell 环境变量中写死 Key，直接在 **dsh Web 界面**（设置 -> 模型提供商 -> Ollama / Prompt Architect）的 **API Key 输入框** 中填入 `Xiaoyao0903` 并保存即可！
 
 ### 3. 命令行独立使用 (CLI)
 ```bash
-# 检查本地引擎状态
+# 检查后端引擎连接状态
 python3 -m src.cli check
 
 # 完整诊断报告与结构化输出

@@ -22,10 +22,19 @@ class DualBrainEngine:
         self.model = model or config.model
         self.fallback_model = config.fallback_model
 
+    def _build_headers(self, content_type: Optional[str] = None) -> Dict[str, str]:
+        headers = {"User-Agent": "DualBrain/1.0"}
+        if content_type:
+            headers["Content-Type"] = content_type
+        if config.api_key:
+            headers["Authorization"] = f"Bearer {config.api_key}"
+            headers["x-api-key"] = config.api_key
+        return headers
+
     def check_health(self) -> Dict[str, Any]:
         """Check if local Ollama service is reachable and list models."""
         url = f"{self.base_url}/api/tags"
-        req = urllib.request.Request(url, headers={"User-Agent": "DualBrain/1.0"})
+        req = urllib.request.Request(url, headers=self._build_headers())
         try:
             with urllib.request.urlopen(req, timeout=5) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
@@ -70,7 +79,7 @@ class DualBrainEngine:
         req = urllib.request.Request(
             url,
             data=req_data,
-            headers={"Content-Type": "application/json", "User-Agent": "DualBrain/1.0"}
+            headers=self._build_headers(content_type="application/json")
         )
         try:
             with urllib.request.urlopen(req, timeout=config.timeout_seconds) as resp:
