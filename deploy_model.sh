@@ -53,13 +53,30 @@ if ! command -v ollama &> /dev/null; then
     fi
 fi
 
+# 检查并配置 macOS Launchd 硬件加速 (Flash Attention & Q8_0 KV Cache)
+if [[ "${OS_NAME}" == "Darwin" ]]; then
+    LAUNCH_AGENTS_DIR="${HOME}/Library/LaunchAgents"
+    TARGET_PLIST="${LAUNCH_AGENTS_DIR}/sh.brew.ollama.plist"
+    SOURCE_PLIST="${SCRIPT_DIR}/launchd/sh.brew.ollama.plist"
+
+    if [ -f "${SOURCE_PLIST}" ]; then
+        mkdir -p "${LAUNCH_AGENTS_DIR}"
+        info "正在配置 M4 硬件加速环境变量 (Flash Attention & Q8_0 KV Cache)..."
+        cp "${SOURCE_PLIST}" "${TARGET_PLIST}"
+        success "已部署硬件加速守护配置: ${TARGET_PLIST}"
+    fi
+fi
+
 # 检查本地服务连通性
 if ! curl -s "http://127.0.0.1:11434/api/tags" &> /dev/null; then
     info "本地 Ollama 服务未运行，正在后台启动服务..."
-    if command -v brew &> /dev/null && brew services list | grep -q ollama; then
+    if [[ "${OS_NAME}" == "Darwin" ]] && [ -f "${HOME}/Library/LaunchAgents/sh.brew.ollama.plist" ]; then
+        launchctl unload "${HOME}/Library/LaunchAgents/sh.brew.ollama.plist" 2>/dev/null || true
+        launchctl load "${HOME}/Library/LaunchAgents/sh.brew.ollama.plist"
+    elif command -v brew &> /dev/null && brew services list | grep -q ollama; then
         brew services start ollama
     else
-        nohup ollama serve > /dev/null 2>&1 &
+        OLLAMA_FLASH_ATTENTION=1 OLLAMA_KV_CACHE_TYPE=q8_0 nohup ollama serve > /dev/null 2>&1 &
     fi
     # 等待服务就绪
     WAIT_COUNT=0
