@@ -41,11 +41,32 @@ else
     warn "未能通过默认域名访问，请确保本地 Ollama 或 Cloudflare Tunnel 正在运行。"
 fi
 
-# 3. 确保脚本可执行权限
-info "3/5 配置文件权限..."
+# 3. 配置文件权限与动态路径
+info "3/5 配置文件权限与 MCP 路径..."
 chmod +x "${SCRIPT_DIR}/src/mcp_server.py"
 chmod +x "${SCRIPT_DIR}/src/cli.py"
-success "权限配置完成。"
+
+cat <<EOF > "${SCRIPT_DIR}/mcp_config.json"
+{
+  "mcpServers": {
+    "prompt-architect": {
+      "command": "python3",
+      "args": [
+        "${SCRIPT_DIR}/src/mcp_server.py"
+      ],
+      "env": {
+        "PATH": "${HOME}/.gemini/antigravity/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+      },
+      "tools": {
+        "optimize_prompt": {
+          "eager": true
+        }
+      }
+    }
+  }
+}
+EOF
+success "权限与 MCP 动态路径配置完成。"
 
 # 4. 创建 Antigravity 插件目录并建立软链接
 info "4/5 部署插件到 Antigravity 全局目录 (${TARGET_DIR})..."
